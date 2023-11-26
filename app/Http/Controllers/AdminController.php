@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -24,16 +25,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AdminController extends Controller
 {
-    function token()
-    {
-        $admin=Admin::create([
-            'phone_number' => '0993818821',
-            'password' => Hash::make('112233'),
-            
-        ]);
-
-        return response()->json([ $admin, "token" => $admin->createToken('token')->plainTextToken]);
-    }
     public function create_client(Request $request)
     {
         
@@ -91,16 +82,20 @@ class AdminController extends Controller
         }
         
     }
-    public function view_client($id)
+    public function view_client($id,$local)
     {
+        $l=App::setLocale($local);
+            return response()->json([__('user.user')]);
         try {
             $client=User::where('id', $id)->firstOrFail();
+            
             
         } catch (\Exception $e) {
             return response()->json(['message'=>'client not found!'], 404);
         }
         
-        return response()->json([$client]);
+        
+        
 
     }
     public function create_priority(Request $request)

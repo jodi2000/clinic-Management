@@ -23,6 +23,13 @@ use PhpParser\Node\Stmt\TryCatch;
 
 class ClientController extends Controller
 {
+    public function factory_user()
+    {
+        
+        $users = User::factory()->count(3)->make();
+        
+        return response()->json([$users]);
+    }
     public function create_ticket(Request $request)
     {
         $id=Auth::id();
@@ -99,4 +106,5 @@ class ClientController extends Controller
         
 
     }
+    
 }

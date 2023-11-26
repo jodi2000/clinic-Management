@@ -35,9 +35,9 @@ class User extends Authenticatable
         'created_at',
         'updated_at'
     ];
-
-    function ticket()
+    public function groups()
     {
-        return $this->hasMany(Ticket::class);
+        return $this->belongsToMany(Group::class, 'group_users')
+            ->withPivot('role');
     }
 }
