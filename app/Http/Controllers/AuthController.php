@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRegisterRequest as UserRegisterRequest;
 use App\Models\User;
 use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
@@ -11,15 +12,8 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends BaseController
 {
 
-    public function register(Request $request)
-    {
-        // Validate the incoming request
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-        ]);
-
+    public function register(UserRegisterRequest $request)
+    {         
         // Create a new User instance
         $user = new User();
         $user->name = $request->name;
@@ -28,7 +22,7 @@ class AuthController extends BaseController
         $user->save();
 
         // Return a response
-        return response()->json(['message' => 'User registered successfully'], 201);
+        return $this->sendResponse($user,'user Registerd successullly ');
     }
     public function login(Request $request)
     {
@@ -41,5 +35,11 @@ class AuthController extends BaseController
         } else {
             return $this->sendError('please validate error');
         }
+    }
+    public function logout(Request $request)
+    {
+        Auth::user()->currentAccessToken()->delete();
+
+        return $this->sendResponse(null,'logout successfully');
     }
 }

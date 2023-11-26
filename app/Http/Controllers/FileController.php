@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FileStoreRequest;
 use App\Models\File;
 use App\Models\Group;
 use App\Models\Report;
@@ -9,31 +10,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class FileController extends Controller
+class FileController extends BaseController
 {
 
-    public function sendFileToGroup(Request $request, $groupId)
+    public function sendFileToGroup(FileStoreRequest $request, $groupId)
     {
-        // Validate the incoming request
-        $this->validate($request, [
-            'file' => 'required|string',
-            'name'=>'required|string'
-        ]);
 
-        // Retrieve the group
         $group = Group::findOrFail($groupId);
-        
-        $file=File::create([
-            'path'=>$request->file,
-            'name'=>$request->name,
-            'status_id'=>1,
-            'user_id'=>Auth::id()
-        ]);
+        $path = $request->file('file')->store('files'); 
+        try {
+            $file = File::create([
+                'path' => $path,
+                'name' => $request->name,
+                'status_id' => 1,
+                'user_id' => Auth::id(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create file: ' . $e->getMessage()], 500);
+        }
+    
+        // Associate the file with the group
+        $group->files()->save($file);
         
 
         $group->files()->save($file);
+        return $this->sendResponse(null,'File sent successfully');
 
-        return response()->json(['message' => 'File sent successfully'], 201);
     }
 
     

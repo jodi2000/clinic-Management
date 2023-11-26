@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GroupStoreRequest;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class GroupController extends Controller
+class GroupController extends BaseController
 {
     /**
      * Display a listing of the resource.
@@ -34,12 +35,8 @@ class GroupController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(GroupStoreRequest $request)
     {
-        $this->validate($request, [
-            'name' => 'required',
-        ]);
-    
         // Create a new Group instance
         $group = new Group();
         $group->name = $request->name;
@@ -47,26 +44,21 @@ class GroupController extends Controller
     
         // Attach the current user to the group as an admin
         $group->users()->attach(auth()->user()->id, ['role' => 'admin']);
-    
-        // Return a response
         return response()->json(['message' => 'Group created successfully'], 201);    
     }
-    public function getUserGroups()
+    public function getGroupUsers($groupId)
     {
-        $user = Auth::user();
-
-        $groups = $user->groups()->get();
-
-        return response()->json(['groups' => $groups], 200);
+        $group = Group::findOrFail($groupId);
+        $users = $group->users()->get();        
+        return $this->sendResponse($users,'group users showed successfully');
     }
 
     public function getGroupFiles($groupId)
     {
         $group = Group::findOrFail($groupId);
 
-        $files = $group->files;
-
-        return response()->json(['files' => $files], 200);
+        $files = $group->files()->with('user')->get();
+        return $this->sendResponse($files,'group files showed successfully');
     }
 
     /**

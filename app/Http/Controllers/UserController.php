@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function indexByGroup()
     {
-        //
+        $user = Auth::user();
+        $groups = $user->groups()->get();
+        return $this->sendResponse($groups,'user groups showed successfully');
     }
 
     /**
