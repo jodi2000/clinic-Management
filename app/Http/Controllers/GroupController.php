@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GroupStoreRequest;
 use App\Models\Group;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,9 +15,11 @@ class GroupController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function indexByUser()
     {
-        //
+        $user = Auth::user();
+        $groups = $user->groups()->with('permissions')->get();
+        return $this->sendResponse($groups,'user groups showed successfully');    
     }
 
     /**
@@ -41,9 +44,15 @@ class GroupController extends BaseController
         $group = new Group();
         $group->name = $request->name;
         $group->save();
-    
+        $permissions = Permission::all();
+
         // Attach the current user to the group as an admin
         $group->users()->attach(auth()->user()->id, ['role' => 'admin']);
+    
+        // Attach all permissions to the group
+        foreach ($permissions as $permission) {
+            $group->permissions()->attach($permission->id);
+        }
         return response()->json(['message' => 'Group created successfully'], 201);    
     }
     public function getGroupUsers($groupId)

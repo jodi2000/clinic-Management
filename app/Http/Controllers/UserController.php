@@ -12,11 +12,9 @@ class UserController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function indexByGroup()
+    public function index()
     {
-        $user = Auth::user();
-        $groups = $user->groups()->get();
-        return $this->sendResponse($groups,'user groups showed successfully');
+
     }
 
     /**
