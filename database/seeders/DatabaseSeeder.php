@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
         User::insert([
             'name' => Str::random(10),
-            'phone_number' => Str::random(10),
+            // 'phone_number' => Str::random(10),
             'password' => Hash::make('password'),
         ]);
 

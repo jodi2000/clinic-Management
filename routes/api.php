@@ -28,8 +28,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('groups/{groupId}/files', [\App\http\Controllers\FileController::class, 'sendFileToGroup']);
     Route::get('files/{group}/group',[\App\http\Controllers\FileController::class, 'indexByGroup']);
 
-    Route::post('files/{file}/reserved', [\App\http\Controllers\FileController::class, 'reserveFile']);
-    Route::post('files/{file}/free', [\App\http\Controllers\FileController::class, 'returnFile']);
+    Route::post('files/{file}/check-in', [\App\http\Controllers\FileController::class, 'checkIn']);
+    Route::post('files/{file}/check-out', [\App\http\Controllers\FileController::class, 'checkOut']);
 
     Route::post('logout',[\App\http\Controllers\AuthController::class,'logout']);
     Route::get('user/groups', [\App\http\Controllers\GroupController::class, 'indexByUser']);

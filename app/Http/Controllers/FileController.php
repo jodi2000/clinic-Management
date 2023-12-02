@@ -51,7 +51,7 @@ class FileController extends BaseController
         // Return the group's files with owners
         return response()->json($group->files, 200);    
     }
-    public function reserveFile(Request $request, $fileId)
+    public function checkIn(Request $request, $fileId)
     {
         $file = File::findOrFail($fileId);
 
@@ -66,6 +66,21 @@ class FileController extends BaseController
             // Check if the file is already reserved or taken
             if ($file->status_id !== 1) {
                 return response()->json(['message' => 'File is already reserved or taken'], 400);
+            }
+
+            // Perform file update if requested
+            if ($request->has('file')) {
+                $path = $request->file('file')->store('files'); 
+                $file->update([
+                    'path'=>$path
+                ]);
+                $file->save();
+            }
+            if ($request->has('name')) {
+                $file->update([
+                    'name'=>$request->input('name')
+                ]);
+                $file->save();
             }
 
             // Update the file status to reserved
@@ -86,13 +101,12 @@ class FileController extends BaseController
             // Rollback the transaction in case of any exception
             DB::rollBack();
 
-            // Handle the exception or return an error response
             return response()->json(['message' => 'Failed to reserve the file'], 500);
         }
     }
 
 
-    public function returnFile(Request $request, $fileId)
+    public function checkOut(Request $request, $fileId)
     {
         $file = File::findOrFail($fileId);
 
