@@ -13,6 +13,17 @@ class Report extends Model
         'user_id',
         'time_in',
         'time_out',
-        'file_id'
+        'file_id',
+        'group_id'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function file()
+    {
+        return $this->belongsTo(File::class);
+    }
 }

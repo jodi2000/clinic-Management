@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\userService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends BaseController
 {
+
+    private $userService;
+    public function __construct(userService $userService)
+    {
+        $this->userService = $userService;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -14,18 +22,11 @@ class UserController extends BaseController
      */
     public function index()
     {
+        $users= $this->userService->getAllUsers();
+        return $this->sendResponse($users,'users showed successfully');    
 
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+    
 
     /**
      * Store a newly created resource in storage.
@@ -49,28 +50,6 @@ class UserController extends BaseController
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -80,6 +59,8 @@ class UserController extends BaseController
      */
     public function destroy($id)
     {
-        //
+        $this->userService->deleteUser($id);
+        return $this->sendResponse([],'user delete contact successfully');    
+
     }
 }

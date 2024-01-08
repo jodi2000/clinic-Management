@@ -29,6 +29,6 @@ class GroupStoreRequest extends FormRequest
      */
     public function authorize()
     {
-               return true;
+        return true;
     }
 }

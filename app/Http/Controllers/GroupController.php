@@ -5,11 +5,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GroupStoreRequest;
 use App\Models\Group;
 use App\Models\Permission;
+use App\Models\Report;
+use App\Models\User;
+use App\Services\groupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GroupController extends BaseController
 {
+
+    private $groupService;
+    public function __construct(groupService $groupService)
+    {
+        $this->groupService = $groupService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -17,20 +27,21 @@ class GroupController extends BaseController
      */
     public function indexByUser()
     {
-        $user = Auth::user();
-        $groups = $user->groups()->with('permissions')->get();
+        $groups = $this->groupService->getAllGroups();
         return $this->sendResponse($groups,'user groups showed successfully');    
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function joinGroup($userId, $groupId)
     {
-        //
+        $result = $this->groupService->join($userId,$groupId);
+        return $result;
     }
+    public function leaveGroup($groupId, $userId)
+    {
+        $result = $this->groupService->leave($userId,$groupId);
+        return $result;
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -40,33 +51,19 @@ class GroupController extends BaseController
      */
     public function store(GroupStoreRequest $request)
     {
-        // Create a new Group instance
-        $group = new Group();
-        $group->name = $request->name;
-        $group->save();
-        $permissions = Permission::all();
-
-        // Attach the current user to the group as an admin
-        $group->users()->attach(auth()->user()->id, ['role' => 'admin']);
-    
-        // Attach all permissions to the group
-        foreach ($permissions as $permission) {
-            $group->permissions()->attach($permission->id);
-        }
-        return response()->json(['message' => 'Group created successfully'], 201);    
+        $group = $this->groupService->addGroup($request);
+        return response()->json(['message' => 'Group created successfully','group'=>$group], 201);    
     }
+
     public function getGroupUsers($groupId)
     {
-        $group = Group::findOrFail($groupId);
-        $users = $group->users()->get();        
+        $users = $this->groupService->users($groupId);       
         return $this->sendResponse($users,'group users showed successfully');
     }
 
     public function getGroupFiles($groupId)
     {
-        $group = Group::findOrFail($groupId);
-
-        $files = $group->files()->with('user')->get();
+        $files = $this->groupService->files($groupId);       
         return $this->sendResponse($files,'group files showed successfully');
     }
 
@@ -82,29 +79,6 @@ class GroupController extends BaseController
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -112,6 +86,8 @@ class GroupController extends BaseController
      */
     public function destroy($id)
     {
-        //
+        $this->groupService->deleteGroup($id);
+        return $this->sendResponse([],'group deleted successfully');
+
     }
 }

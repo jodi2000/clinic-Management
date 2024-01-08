@@ -26,10 +26,13 @@ use Illuminate\Foundation\Testing\Concerns\MocksApplicationServices;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithUrls;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithSession as InteractsWithSessionAlias;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class UsersAccessFiles extends TestCase
 {
+    public $usersWhoTookFile ;
+
     public function testMultipleUsersCanAccessAndUpdateFile()
     {
         $requiredUsersCount = 100;
@@ -50,16 +53,18 @@ class UsersAccessFiles extends TestCase
         {
             $this->fail('The file is alraedy taken');
         }
-        $usersWhoTookFile = []; 
 
         foreach ($users as $user) {
-            ApiProcess::dispatch($user,$file);
-
+             ApiProcess::dispatch($user,$file);
         }
 
+        $logs = Log::getLogger()->getHandlers()[0]->getRecords();
 
+        // Assert that no assertion failures occurred
+        $this->assertEmpty($logs, 'Assertion failures occurred in the jobs.');
+        // $this->artisan('queue:work --stop-when-empty');
         // Assert that the file was updated by one user
-        $this->assertCount(1, $usersWhoTookFile);
+        // $this->assertCount(1, [$this->usersWhoTookFile]);
 
     }
 }

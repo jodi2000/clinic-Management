@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest as UserRegisterRequest;
 use App\Models\User;
+use App\Services\userService;
 use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,35 +13,31 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends BaseController
 {
-
+    private $userService;
+    public function __construct(userService $userService)
+    {
+        $this->userService = $userService;
+    }
     public function register(UserRegisterRequest $request)
     {         
-        // Create a new User instance
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        // Return a response
-        return $this->sendResponse($user,'user Registerd successullly ');
+        $user = $this->userService->register($request);
+        return $this->sendResponse($user,'user Registerd successullly');
     }
-    public function login(Request $request)
+    
+    public function login(UserLoginRequest $request)
     {
-        $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $user->createToken('token')->plainTextToken;
-            
-            return $this->sendResponse($token,'user Registerd successullly ');
-        } else {
-            return $this->sendError('please validate error');
-        }
+        $user = $this->userService->login($request);
+        return $user;
     }
     public function logout(Request $request)
     {
-        Auth::user()->currentAccessToken()->delete();
-
+        $this->userService->logout();
         return $this->sendResponse(null,'logout successfully');
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $otp = $this->userService->sendOtp($request->user_id, $request->otp);
+        return $this->sendResponse(null, $otp);
     }
 }

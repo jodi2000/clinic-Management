@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\UserBelongsToGroup;
 use Illuminate\Foundation\Http\FormRequest;
 
 
-class FileStoreRequest extends FormRequest
+class FileCheckinRequest extends FormRequest
 {
 
     /**
@@ -15,11 +16,8 @@ class FileStoreRequest extends FormRequest
      */
     public function rules()
     {
-        $fileSizeLimitInKB = env('FILE_SIZE_LIMIT', 10240);
-
         return [
-            'file' => ['required', 'file', 'max:' . $fileSizeLimitInKB],
-            'name' => ['required', 'string'],
+            'groupId' => ['required', new UserBelongsToGroup($this->input('groupId'))],
         ];
     }
 

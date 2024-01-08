@@ -17,6 +17,8 @@ class CreateReportsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('file_id')->nullable();
             $table->foreign('file_id')->references('id')->on('files');
+            $table->unsignedBigInteger('group_id')->nullable();
+            $table->foreign('group_id')->references('id')->on('groups');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamp('time_in')->nullable();

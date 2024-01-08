@@ -8,16 +8,15 @@ use Illuminate\Http\Request;
 class BaseController extends Controller
 {
     public function sendResponse($result, $message)
-    { // fun sends theResponse to user with result and massage
+    { 
         $response = [
             'success' => true,
-            'data' => $result, //the date that comes from the database is stored  in result variable
+            'data' => $result, 
             'message' => $message
-            //succes is Key and true is  value
         ];
 
 
-        return response()->json($response, 200); // 200 is http protocol // send data to user as json
+        return response()->json($response, 200); 
 
     }
 

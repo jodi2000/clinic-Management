@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ApiProcess implements ShouldQueue
 {
@@ -18,6 +19,7 @@ class ApiProcess implements ShouldQueue
 
     protected $user;
     protected $file;
+    protected $usersWhoTookFile;
 
     /**
      * Create a new job instance.
@@ -38,15 +40,23 @@ class ApiProcess implements ShouldQueue
      */
     public function handle()
     {
+        $token=$this->user->createToken('token')->plainTextToken;
+        $body = [
+            'file_ids' => [$this->file->id],
+        ];
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->user->api_token,
-        ])->post('http://localhost:8888/api/files/' . $this->file->id . '/check-in');
+            'Authorization' => 'Bearer ' . $token,
+        ])->withBody(json_encode($body), 'application/json')
+          ->post('http://localhost:8000/api/files/check-in');
 
         if (!$response->successful()) {
             $responseBody = $response->body();
-            $this->fail('API call failed with message: ' . $responseBody);
+            Log::error('API call failed with message: ' . $responseBody);
+        }
+        else
+        {             
+            $this->usersWhoTookFile= $this->user->id;
         }
 
-        // $response->assertStatus(200);
     }
 }

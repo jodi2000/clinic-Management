@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 
 
-class FileStoreRequest extends FormRequest
+class UserLoginRequest extends FormRequest
 {
 
     /**
@@ -15,13 +15,15 @@ class FileStoreRequest extends FormRequest
      */
     public function rules()
     {
-        $fileSizeLimitInKB = env('FILE_SIZE_LIMIT', 10240);
 
         return [
-            'file' => ['required', 'file', 'max:' . $fileSizeLimitInKB],
-            'name' => ['required', 'string'],
+            'email' => ['required', 'email', 'exists:users,email'],
+            'password' => ['required', 'min:6'],
+
         ];
     }
+
+
 
     /**
      * Determine if the user is authorized to make this request.

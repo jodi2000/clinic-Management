@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/reports', [\App\http\Controllers\ReportController::class,'index'])->name('reports.index');
+Route::get('/config/update', [\App\http\Controllers\Controller::class,'updateForm'])->name('config.update');
+Route::post('/config/save', [\App\http\Controllers\Controller::class,'save'])->name('config.save');
