@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 
 
-class UserRegisterRequest extends FormRequest
+class StoreAppointmentRequest extends FormRequest
 {
 
     /**
@@ -15,16 +15,11 @@ class UserRegisterRequest extends FormRequest
      */
     public function rules()
     {
-
         return [
-            'name' => ['required'],
-            'email' => ['required', 'email', 'unique:users'],
-            'password' => ['required', 'min:6'],
-
+            'doctor_id' => ['required', 'exists:users,id'],
+            'scheduled_date' => ['required', 'date', 'after:now'],
         ];
     }
-
-
 
     /**
      * Determine if the user is authorized to make this request.

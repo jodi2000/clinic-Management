@@ -5,19 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Status extends Model
+class Specialization extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'title',       
+        'title'
     ];
-    protected $hidden = [
-        'created_at',
-        'updated_at'
-    ];
-    protected $table = 'statuses';
 
-    
-    
+    public function doctors()
+    {
+        return $this->belongsToMany(User::class, 'users_specialization');
+    } 
 }

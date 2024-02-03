@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 
 
-class UserRegisterRequest extends FormRequest
+class ListDoctorsRequest extends FormRequest
 {
 
     /**
@@ -15,12 +15,7 @@ class UserRegisterRequest extends FormRequest
      */
     public function rules()
     {
-
         return [
-            'name' => ['required'],
-            'email' => ['required', 'email', 'unique:users'],
-            'password' => ['required', 'min:6'],
-
         ];
     }
 

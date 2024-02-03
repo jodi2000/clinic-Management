@@ -21,7 +21,7 @@ class AuthController extends BaseController
     public function register(UserRegisterRequest $request)
     {         
         $user = $this->userService->register($request);
-        return $this->sendResponse($user,'user Registerd successullly');
+        return $user;
     }
     
     public function login(UserLoginRequest $request)
@@ -35,9 +35,4 @@ class AuthController extends BaseController
         return $this->sendResponse(null,'logout successfully');
     }
 
-    public function sendOtp(Request $request)
-    {
-        $otp = $this->userService->sendOtp($request->user_id, $request->otp);
-        return $this->sendResponse(null, $otp);
-    }
 }

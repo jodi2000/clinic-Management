@@ -4,18 +4,23 @@ namespace App\Services;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\groupRequest;
+use App\Models\Appointment;
 use App\Models\file;
 use App\Models\group;
 use App\Models\Otp;
 use App\Models\Permission;
+use App\Models\Status;
 use App\Models\User;
 use App\Repository\Eloquent\GroupRepository;
 use App\Repository\Eloquent\UserRepository;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class  userService extends BaseController
 {
@@ -34,18 +39,13 @@ class  userService extends BaseController
         $user->password = Hash::make($request->password);
         $user->save();  
         
-        $otp = Otp::create([
-            'user_id' => $user->id,
-            'otp' => mt_rand(100000, 999999),
-            'expires_at' =>now()->addMinutes(20)
-        ]);
+        $token = $user->createToken('token')->plainTextToken;
 
-        $message = Mail::raw('FILE MANAGER', function ($message) use ($user, $otp) {
-            $message->from("jodialmalt@gmail.com");
-            $message->to($user->email);
-            $message->subject($otp);
-        });
-        return $user;
+        $response = [
+            'user' => $user,
+            'token' => $token
+        ];
+        return $this->sendResponse($response,'user Registerd successully ');
     }
     public function login(Request $request)
     {
@@ -54,7 +54,7 @@ class  userService extends BaseController
             $user = Auth::user();
             $token = $user->createToken('token')->plainTextToken;
             
-            return $this->sendResponse($token,'user login successullly ');
+            return $this->sendResponse($token,'user login successully ');
         } else {
             return $this->sendError('please validate error');
         }
@@ -63,80 +63,81 @@ class  userService extends BaseController
     {
         Auth::user()->currentAccessToken()->delete();
     }
-    public function addGroup($request)
-    {
-        $group = new Group();
-        $group->name = $request->name;
-        $group->save();
-        $permissions = Permission::all();
 
-        // Attach the current user to the group as an admin
-        $group->users()->attach(auth()->user()->id, ['role' => 'admin']);
+    public function storeAppointment($data)
+    {
+        $data['user_id'] = Auth::id();
+        $data['status_id'] = Status::where('title','pending')->first()->id;
+        $appointment = Appointment::create($data);
+        return $appointment;
+    }
+    public function getMyAppointments()
+    {
+        $now = Carbon::now();
+
+        $appointments = QueryBuilder::for(Appointment::class)
+            ->where('user_id', Auth::id())
+            ->allowedFilters([
+                'id',
+                AllowedFilter::scope('status'),
+                AllowedFilter::scope('doctor'),
+                AllowedFilter::scope('specialization'),
+            ])
+            ->get();
+
+        foreach ($appointments as $appointment) {
+            if ($appointment->scheduled_date < $now && $appointment->status !== 'expired') {
+                $appointment->status = 'expired';
+                $appointment->save();
+            }
+        }
+
+        return $appointments;
+    }
+
+    public function cancelAppointment($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        if ($appointment->user_id !== Auth::id()) {
+            return null;
+        }
+
+        if ($appointment->status_id !== Status::where('title','pending')->first()->id) {
+            return null;
+        }
+
+        $appointment->status_id = Status::where('title','canceled')->first()->id;
+        $appointment->save();
+        
+        return $appointment;
+    }
+    public function updateAppointmentStatus($data, $id)
+    {
+        $doctor = Auth::user();
+        $appointment = Appointment::findOrFail($id);
     
-        // Attach all permissions to the group
-        foreach ($permissions as $permission) {
-            $group->permissions()->attach($permission->id);
+        if ($appointment->doctor_id != $doctor->id) {
+            return null;
         }
-
-        Log::channel('custom')->info('User create a group', ['user' => auth()->user()->name, 'group' => $group]);
-
-        return $group;
-    }
-    public function getAllUsers()
-    {
-        $users=User::all();
-        Log::channel('custom')->info('User fetch all contacts', ['user' => auth()->user()->name]);
-        return $users;
-    }
-
-    public function users($groupId)
-    {
-        $group = Group::findOrFail($groupId);
-        $users = $group->users()->get();        
-        Log::channel('custom')->info('User fetch all groups', ['user' => auth()->user()->name, 'groups' => $group]);
-        return $users;
-    }
-
-    public function files($groupId)
-    {
-        $group = Group::findOrFail($groupId);
-        $files = $group->files()->with('user')->get();     
-        Log::channel('custom')->info('User fetch all groups', ['user' => auth()->user()->name, 'groups' => $group]);
-        return $files;
-    }
-    public function deleteUser($id)
-    {
-        $user=User::find($id);
-        $user->delete();
-        Log::channel('custom')->info('User delete a contact', ['user' => auth()->user()->name, 'user' => $user]);
-
-    }
-
-    public function sendOtp($userId,$otp)
-    {
-        $otpRecord = Otp::where('user_id', $userId)->latest()->first();
-
-        if ($otpRecord && $otpRecord->otp === $otp && $otpRecord->expires_at > now()) {
-
-            $user = User::find($userId);
-            $user->is_verified = true;
-            $user->save();
-
-            $otpRecord->delete();
-
-            return 'OTP is valid. User is now verified.';
+    
+        if ($appointment->status_id !== Status::where('title','pending')->first()->id) {
+            return null;
+        }
+    
+        $status = $data['status'];
+    
+        if ($status === 'accepted') {
+            $appointment->status_id = Status::where('title','accepted')->first()->id; 
+        } elseif ($status === 'rejected') {
+            $appointment->status_id = Status::where('title','rejected')->first()->id; 
         } else {
-
-            return 'Invalid OTP. Please try again.';
+            return null;
         }
+    
+        $appointment->save();
+    
+        return $appointment;
     }
-    public function showGroup($id){
-        $user = auth('sanctum')->user();
-        $group = $this->groupRpository->find($id);
-        $files=file::where('group_id',$id)->get();
-        Log::channel('custom')->info('show info group '.$group->name, ['user' => $user->name,'Ip' => request()->ip(), 'groups' => $group]);
-        return $files;
-    }
-
 
 }

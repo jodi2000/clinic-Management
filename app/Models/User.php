@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use TCG\Voyager\Models\Role;
 
-class User extends Authenticatable
+class User  extends \TCG\Voyager\Models\User
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable,SoftDeletes;
     protected $table = 'users';
     /**
      * The attributes that are mass assignable.
@@ -22,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id'
     ];
 
     /**
@@ -33,16 +36,26 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
-    public function groups()
+
+    public function specializations()
     {
-        return $this->belongsToMany(Group::class, 'group_users')
-            ->withPivot('role');
+        return $this->belongsToMany(Specialization::class, 'users_specialization','doctor_id');
+    }
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    } 
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 
-    public function files()
+    public function isDoctor()
     {
-        return $this->hasMany(File::class);
+        return $this->role->name === 'doctor';
     }
 }
