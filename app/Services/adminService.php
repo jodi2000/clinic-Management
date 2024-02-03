@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Controllers\BaseController;
 use App\Models\Appointment;
 use App\Models\Specialization;
+use App\Models\Status;
 use App\Models\User;
 use App\Repository\Eloquent\AdminRepository;
 use Illuminate\Support\Facades\Hash;
@@ -149,5 +150,11 @@ class adminService extends BaseController
                         ])->get();
 
         return $appointments;
+    }
+    public function storeAppointment($data)
+    {
+        $data['status_id'] = Status::where('title','pending')->first()->id;
+        $appointment = Appointment::create($data);
+        return $appointment;
     }
 }

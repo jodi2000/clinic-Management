@@ -100,4 +100,9 @@ class AdminController extends BaseController
         $Appointments = $this->adminService->getUserAppointments($id);
         return $this->sendResponse($Appointments,'Appointments showed successfully'); 
     }
+    public function storeAppointmentByAdmin(ListAppointmentsRequest $request)
+    {
+        $Appointment = $this->adminService->storeAppointment($request->validated());
+        return $this->sendResponse($Appointment,'Appointment stored successfully'); 
+    }
 }

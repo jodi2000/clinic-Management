@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\AppointmentObserver;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
@@ -18,7 +19,7 @@ class Appointment extends Model
         'scheduled_date'
     ];
 
-    public static function boot()
+    public static function booted()
     {
         Appointment::observe(AppointmentObserver::class);
     }
@@ -34,26 +35,26 @@ class Appointment extends Model
     {
         return $this->belongsTo(Status::class);
     } 
-    public function statusScope(Builder $query, $name)
+    public function statusScope(EloquentBuilder $query, $name)
     {
         return $query->whereHas('status', function ($q) use ($name) {
             return $q->where('name','like',"%{$name}%");
         });
     }
 
-    public function userScope(Builder $query, $name)
+    public function userScope(EloquentBuilder $query, $name)
     {
         return $query->whereHas('user', function ($q) use ($name) {
             return $q->where('name','like',"%{$name}%");
         });
     }
-    public function doctorScope(Builder $query, $name)
+    public function scopeDoctor(EloquentBuilder $query, $name)
     {
         return $query->whereHas('doctor', function ($q) use ($name) {
             return $q->where('name','like',"%{$name}%");
         });
     }
-    public function specializationScope(Builder $query, $name)
+    public function specializationScope(EloquentBuilder $query, $name)
     {
         return $query->whereHas('doctor.specializations', function ($q) use ($name) {
             return $q->where('name','like',"%{$name}%");
