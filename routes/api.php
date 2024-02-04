@@ -37,10 +37,15 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::get('/appointments', [\App\http\Controllers\AdminController::class, 'getAllAppointments']);
     Route::get('/appointments/{userId}', [\App\http\Controllers\AdminController::class, 'getUserAppointments']);
+    Route::post('/admin/appointments', [\App\http\Controllers\AdminController::class, 'storeAppointmentByAdmin'])->middleware('transaction_middleware');
+    Route::put('/admin/appointments/{id}', [\App\http\Controllers\AdminController::class, 'updateAppointment'])->middleware('transaction_middleware');
+    Route::delete('/admin/appointments/{id}', [\App\http\Controllers\AdminController::class, 'deleteAppointment']);
 
     Route::get('/my-appointments', [\App\http\Controllers\UserController::class, 'getMyAppointments']);
     Route::post('/appointments', [\App\http\Controllers\UserController::class, 'storeAppointment'])->middleware('transaction_middleware');
     Route::put('/appointments/{id}', [\App\http\Controllers\UserController::class, 'cancelAppointment'])->middleware('transaction_middleware');
+
+    Route::get('/specializations/doctors/{id}', [\App\http\Controllers\UserController::class, 'getDoctorsBySpecialization']);
 
     Route::put('/appointments/{id}/status', [\App\http\Controllers\UserController::class, 'updateAppointmentStatus'])->middleware('transaction_middleware');
 

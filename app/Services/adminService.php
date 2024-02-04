@@ -32,7 +32,7 @@ class adminService extends BaseController
 
     public function getUser($data)
     {
-        $user=User::where('id',$data)->with('role:id,disply_name')->first();
+        $user=User::where('id',$data)->with('role:id,name')->first();
         return $user;
     }
     public function storeUser($data)
@@ -58,7 +58,7 @@ class adminService extends BaseController
 
     public function getAllDoctors()
     {
-        $doctors = User::whereHas('role', function ($query) {
+        $doctors = User::with('specializations')->whereHas('role', function ($query) {
             $query->where('name', 'doctor');
         })->get();
         return $doctors;
@@ -72,7 +72,7 @@ class adminService extends BaseController
     public function storeDoctor($data)
     {
         $data['password'] = Hash::make($data['password']);
-        $data['role_id'] = 3;
+        $data['role_id'] = Role::where('name','doctor')->first()->id;
         $user = User::create($data);
         $specializations = $data['specializations'];
         $user->specializations()->sync($specializations);
@@ -82,15 +82,20 @@ class adminService extends BaseController
     public function updateDoctor($data,$id)
     {
         $user = User::with('specializations:title')->findOrFail($id);
-
-        if($data)
+        if($user->isDoctor())
         {
-            $user->update($data);
-            if(isset($data['specializations']))
+            if($data)
             {
-                $user->specializations()->sync($data['specializations']);  
+                $user->update($data);
+                if(isset($data['specializations']))
+                {
+                    $user->specializations()->sync($data['specializations']);  
+                }
             }
         }
+        else 
+            return null;
+        
 
         return $user;
     }
@@ -156,5 +161,19 @@ class adminService extends BaseController
         $data['status_id'] = Status::where('title','pending')->first()->id;
         $appointment = Appointment::create($data);
         return $appointment;
+    }
+    public function updateAppointment($data, $id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update($data);
+        return $appointment;
+    }
+
+    public function deleteAppointment($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return null;
     }
 }

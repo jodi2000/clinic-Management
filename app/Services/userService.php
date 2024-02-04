@@ -9,6 +9,7 @@ use App\Models\file;
 use App\Models\group;
 use App\Models\Otp;
 use App\Models\Permission;
+use App\Models\Specialization;
 use App\Models\Status;
 use App\Models\User;
 use App\Repository\Eloquent\GroupRepository;
@@ -76,6 +77,7 @@ class  userService extends BaseController
         $now = Carbon::now();
 
         $appointments = QueryBuilder::for(Appointment::class)
+            ->with(['doctor','status'])
             ->where('user_id', Auth::id())
             ->allowedFilters([
                 'id',
@@ -86,8 +88,8 @@ class  userService extends BaseController
             ->get();
 
         foreach ($appointments as $appointment) {
-            if ($appointment->scheduled_date < $now && $appointment->status !== 'expired') {
-                $appointment->status = 'expired';
+            if ($appointment->scheduled_date < $now && $appointment->status_id !== Status::where('title','expired')->first()->id) {
+                $appointment->status_id = Status::where('title','expired')->first()->id;
                 $appointment->save();
             }
         }
@@ -138,6 +140,15 @@ class  userService extends BaseController
         $appointment->save();
     
         return $appointment;
+    }
+
+    
+    public function getDoctorsBySpecialization($id)
+    {
+        $Specialization = Specialization::findOrFail($id);
+        $doctors = $Specialization->doctors;
+
+        return $doctors;
     }
 
 }

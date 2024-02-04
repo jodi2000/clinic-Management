@@ -4,8 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-class StoreDoctorRequest extends FormRequest
+class ChangeAppointmentStatusRequest extends FormRequest
 {
 
     /**
@@ -16,11 +17,7 @@ class StoreDoctorRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => ['required', 'string'],
-            'email' => ['required', 'string', 'unique:users,email'],
-            'password' => ['required', 'min:6'],
-            'specializations' => ['required', 'array', 'min:1'], 
-            'specializations.*' => ['required', 'exists:specializations,id'],
+            'status' => ['required', 'string'],
         ];
     }
 
@@ -31,6 +28,6 @@ class StoreDoctorRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::user()->hasRole('admin');
+        return Auth::user()->isDoctor();
     }
 }

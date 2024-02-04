@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteAppointmentRequest;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ListAppointmentsRequest;
 use App\Http\Requests\ListDoctorsRequest;
 use App\Http\Requests\ListUsersRequest;
+use App\Http\Requests\StoreAppointmentByAdminRequest;
 use App\Http\Requests\StoreDoctorRequest;
 use App\Http\Requests\StoreSpecializationRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateAppointmentRequest;
 use App\Http\Requests\UpdateDoctorRequest;
 use App\Http\Requests\UpdateSpecializationRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -47,6 +50,11 @@ class AdminController extends BaseController
         $user = $this->adminService->storeUser($request->validated());
         return $this->sendResponse($user,'user stored successfully'); 
     }
+    public function storeDoctor(StoreDoctorRequest $request)
+    {
+        $doctor = $this->adminService->storeDoctor($request->validated());
+        return $this->sendResponse($doctor,'doctor stored successfully'); 
+    }
     public function updateUser(UpdateUserRequest $request,$id)
     {
         $user = $this->adminService->updateUser($request->validated(),$id);
@@ -55,6 +63,10 @@ class AdminController extends BaseController
     public function updateDoctor(UpdateDoctorRequest $request,$id)
     {
         $doctor = $this->adminService->UpdateDoctor($request->validated(),$id);
+        if($doctor ==null)
+        {
+            return $this->sendError('invalid data');  
+        }
         return $this->sendResponse($doctor,'doctor updated successfully'); 
     }
 
@@ -100,9 +112,19 @@ class AdminController extends BaseController
         $Appointments = $this->adminService->getUserAppointments($id);
         return $this->sendResponse($Appointments,'Appointments showed successfully'); 
     }
-    public function storeAppointmentByAdmin(ListAppointmentsRequest $request)
-    {
+    public function storeAppointmentByAdmin(StoreAppointmentByAdminRequest $request)
+    {  
         $Appointment = $this->adminService->storeAppointment($request->validated());
         return $this->sendResponse($Appointment,'Appointment stored successfully'); 
+    }
+    public function updateAppointment(UpdateAppointmentRequest $request , $id)
+    {  
+        $Appointment = $this->adminService->updateAppointment($request->validated(), $id);
+        return $this->sendResponse($Appointment,'Appointment stored successfully'); 
+    }
+    public function deleteAppointment(DeleteAppointmentRequest $request, $id)
+    {
+        $appointment = $this->adminService->deleteAppointment($id);
+        return $this->sendResponse($appointment,'appointment deleted successfully'); 
     }
 }

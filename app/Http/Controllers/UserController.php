@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangeAppointmentStatusRequest;
 use App\Http\Requests\DeleteAppointmentRequest;
 use App\Http\Requests\ListAppointmentsRequest;
+use App\Http\Requests\ListDoctorsRequest;
 use App\Http\Requests\StoreAppointmentRequest;
-use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Status;
 use App\Models\User;
@@ -23,7 +24,7 @@ class UserController extends BaseController
         $this->userService = $userService;
     }
     /**
-     * Display a listing of the resource.
+     * Display a listing of my appointments.
      *
      * @return \Illuminate\Http\Response
      */
@@ -32,13 +33,21 @@ class UserController extends BaseController
         $appointments= $this->userService->getMyAppointments();
         return $this->sendResponse($appointments,'appointments showed successfully');    
     }
-    
+    /**
+     * store a new appointment.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function storeAppointment(StoreAppointmentRequest $request)
     {
         $appointment= $this->userService->storeAppointment($request->validated());
         return $this->sendResponse($appointment,'appointment stored successfully');    
     }
-
+    /**
+     * cancel an appointment.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function cancelAppointment(DeleteAppointmentRequest $request , $id)
     {
         $appointment= $this->userService->cancelAppointment($id);
@@ -49,7 +58,12 @@ class UserController extends BaseController
         return $this->sendResponse($appointment,'appointment canceled successfully');  
     }
 
-    public function updateAppointmentStatus(UpdateAppointmentRequest $request , $id)
+    /**
+     * update appointment status by doctor.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAppointmentStatus(ChangeAppointmentStatusRequest $request , $id)
     {
         $appointment= $this->userService->updateAppointmentStatus($request->validated(),$id);
         if($appointment==null)
@@ -57,6 +71,17 @@ class UserController extends BaseController
             return $this->sendError('invalid data');  
         }
         return $this->sendResponse($appointment,'appointment updated successfully');  
+    }
+
+    /**
+     * Display a listing of doctors by specialization.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getDoctorsBySpecialization(ListDoctorsRequest $request,$id)
+    {
+        $specializations = $this->userService->getDoctorsBySpecialization($id);
+        return $specializations;
     }
 
     /**

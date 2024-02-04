@@ -21,7 +21,7 @@ class CreateAppointmentsTable extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger('status_id');
             $table->foreign('status_id')->references('id')->on('statuses');
-            $table->date('scheduled_date');
+            $table->datetime('scheduled_date');
             $table->timestamps();
         });
     }

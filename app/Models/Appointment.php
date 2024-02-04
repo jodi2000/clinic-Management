@@ -35,14 +35,14 @@ class Appointment extends Model
     {
         return $this->belongsTo(Status::class);
     } 
-    public function statusScope(EloquentBuilder $query, $name)
+    public function scopeStatus(EloquentBuilder $query, $name)
     {
         return $query->whereHas('status', function ($q) use ($name) {
-            return $q->where('name','like',"%{$name}%");
+            return $q->where('title','like',"%{$name}%");
         });
     }
 
-    public function userScope(EloquentBuilder $query, $name)
+    public function scopeUser(EloquentBuilder $query, $name)
     {
         return $query->whereHas('user', function ($q) use ($name) {
             return $q->where('name','like',"%{$name}%");
@@ -54,10 +54,14 @@ class Appointment extends Model
             return $q->where('name','like',"%{$name}%");
         });
     }
-    public function specializationScope(EloquentBuilder $query, $name)
+    public function scopeSpecialization(EloquentBuilder $query, $name)
     {
-        return $query->whereHas('doctor.specializations', function ($q) use ($name) {
-            return $q->where('name','like',"%{$name}%");
+        return $query->whereHas('doctor', function ($q) use ($name) {
+            return $q->whereHas('specializations', function ($inq) use ($name) {
+            return $inq
+                ->where('specializations.title', 'LIKE', "%{$name}%");
+               
+        });
         });
     }
 }

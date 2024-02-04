@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use TCG\Voyager\Models\Role;
 
 class UpdateAppointmentRequest extends FormRequest
 {
@@ -17,7 +19,20 @@ class UpdateAppointmentRequest extends FormRequest
     public function rules()
     {
         return [
-            'status' => ['required', 'string'],
+            'doctor_id' => [
+            'sometimes',
+            'exists:users,id',
+            function ($attribute, $value, $fail) {
+                $doctorRoleId = Role::where('name', 'doctor')->value('id');
+                $exists = User::where('id', $value)->where('role_id', $doctorRoleId)->exists();
+
+                if (!$exists) {
+                    $fail('The selected doctor is not valid.');
+                }
+            },
+        ],
+            'scheduled_date' => ['sometimes', 'date', 'after:now'],
+
         ];
     }
 
@@ -28,6 +43,6 @@ class UpdateAppointmentRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::user()->isDoctor();
+        return Auth::user()->hasRole('admin');
     }
 }
